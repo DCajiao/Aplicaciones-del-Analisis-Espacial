@@ -16,20 +16,21 @@ library(stars)
 library(readr)
 
 # ----- Rutas -----
-csv_path  <- "C:/Users/david/Desktop/Proyecto 2/Aplicaciones-del-Analisis-Espacial/casos/Situación_2/data/Accidentes_2009_2010.csv"
+csv_url <- "https://raw.githubusercontent.com/DCajiao/Aplicaciones-del-Analisis-Espacial/refs/heads/main/casos/Situaci%C3%B3n_2/data/Accidentes_2009_2010.csv"
 map_dir    <- "C:/Users/david/Desktop/Proyecto 2/Aplicaciones-del-Analisis-Espacial/casos/Situación_2/data/Mapas"
 
 # =========================================================
 # 1) CARGA DE DATOS
 # =========================================================
-raw <- read_csv(csv_path)
+raw <- read_csv(csv_url)
 
 # Columnas de interés (según indicación)
 df <- data.frame(
   x    = as.numeric(raw[["coordenada X (metros)"]]),
   y    = as.numeric(raw[["coordenada Y (metros)"]]),
   sexo = as.factor(raw[["SEXO"]]),
-  tipo = as.factor(raw[["CONDICCION"]])
+  tipo = as.factor(raw[["CONDICCION"]]),
+  edad_agrupada = as.factor(raw[["EDAD AGRUPADA"]])
 )
 
 # Filas válidas
