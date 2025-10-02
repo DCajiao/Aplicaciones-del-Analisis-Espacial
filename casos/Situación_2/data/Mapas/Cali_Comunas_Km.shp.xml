@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<metadata>
+	<idinfo>
+		<citation>
+			<citeinfo>
+				<origin>Fábrica de mapas</origin>
+				<title Sync="TRUE">map_utm_01_Dissolve1</title>
+				<geoform Sync="TRUE">vector digital data</geoform>
+				<serinfo>
+					<sername>Por definir</sername>
+				</serinfo>
+				<pubinfo>
+					<pubplace>Medellin - Colombia</pubplace>
+					<publish>Fabrica de Mapas</publish>
+				</pubinfo>
+				<onlink Sync="TRUE"></onlink>
+				<pubdate>REQUIRED: The date when the data set is published or otherwise made available for release.</pubdate><ftname Sync="TRUE">map_utm_01_Dissolve1</ftname></citeinfo>
+		</citation>
+		<descript>
+			<abstract>Sectorización porcomunas de los municipios que pertenecen al municipio de Cali. Hace parte del catálogo de productos ofrecidos por la Fábrica de mapas.</abstract>
+			<purpose>Las comunas de los municipios sirven como referencia para identificar donde se encuentran localizados  los diferentes elementos geográficos que se incluyen en la base de datos.</purpose>
+			<langdata Sync="TRUE">es</langdata></descript>
+		<timeperd>
+			<timeinfo>
+				<sngdate/>
+			</timeinfo>
+			<current>En proceso de actualización.</current>
+		</timeperd>
+		<status>
+			<progress>Planeado</progress>
+			<update>Cuando sea necesario</update>
+		</status>
+		<spdom>
+			<bounding>
+				<westbc Sync="TRUE">283.405153</westbc>
+				<eastbc Sync="TRUE">283.543474</eastbc>
+				<northbc Sync="TRUE">3.509632</northbc>
+				<southbc Sync="TRUE">3.334376</southbc>
+			</bounding>
+			<lboundng><leftbc Sync="TRUE">720571.154804</leftbc><rightbc Sync="TRUE">735907.143544</rightbc><bottombc Sync="TRUE">860508.180960</bottombc><topbc Sync="TRUE">879866.667157</topbc></lboundng></spdom>
+		<keywords>
+			<theme>
+				<themekt>REQUIRED: Reference to a formally registered thesaurus or a similar authoritative source of theme keywords.</themekt>
+				<themekey>Barrio</themekey>
+				<themekey>Municipio</themekey>
+			</theme>
+			<place>
+				<placekey>Colombia</placekey>
+				<placekey>Sur America</placekey>
+			</place>
+		</keywords>
+		<accconst>Sujetos a las condiciones de venta.</accconst>
+		<useconst>El usuario de esta información se compromete a no distribuir de ninguna manera el contenido son el previo consentimiento del vendedor.  Es uso es exclusivo para consulta del comprador, las modificaciones hechas al producto no corren bajo la responsabilidad de la FdeM ni los vendedores de la información.</useconst>
+		<ptcontac>
+			<cntinfo>
+				<cntorgp>
+					<cntorg>PROCALCULO PROSIS S.A.</cntorg>
+					<cntper>Alvaro Navarro</cntper>
+				</cntorgp>
+				<cntaddr>
+					<addrtype>Dirección de correo</addrtype>
+					<address>Calle 16 No. 41-210 of. 803</address>
+					<city>Medellín</city>
+					<state>Antioquia</state>
+					<country>Colombia</country>
+				</cntaddr>
+				<cntvoice>57 4 2666657</cntvoice>
+				<cntfax>57 4 2666411</cntfax>
+				<cntemail>anavarro@prosis.com</cntemail>
+			</cntinfo>
+		</ptcontac>
+		<datacred>PROCALCULO PROSIS S.A. Medellín, Colombia.</datacred>
+		<native Sync="TRUE">Microsoft Windows Vista Version 6.0 (Build 6000) ; ESRI ArcCatalog 9.3.0.1770</native>
+		<natvform Sync="TRUE">Shapefile</natvform></idinfo>
+	<dataqual>
+		<logic>Los objetos presentes tienen la topologia de polígonos definida por las especificaciones del producto.</logic>
+		<lineage>
+			<srcinfo>
+				<srcscale>1:25000</srcscale>
+				<typesrc>Papel</typesrc>
+				<srccitea>Planeación municipal.</srccitea>
+			</srcinfo>
+			<procstep></procstep>
+			<procstep><procdesc Sync="TRUE">Metadata imported.</procdesc><srcused Sync="TRUE">C:\TEMP\xml26.tmp</srcused><date Sync="TRUE">20040517</date><time Sync="TRUE">16063900</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\SMALDONADO\D\GEODATABASE_PROSIS\Fabrica de mapas.mdb</srcused><date Sync="TRUE">20050114</date><time Sync="TRUE">15333500</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\SMALDONADO\C$\FABRICA_DE_MAPAS\Cali\Ciudad_Cali1.mdb</srcused><date Sync="TRUE">20050118</date><time Sync="TRUE">10450100</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\SMALDONADO\Mapas_9.1\CALI\Ciudad_Cali.mdb</srcused><date Sync="TRUE">20060310</date><time Sync="TRUE">16421900</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE"></srcused><date Sync="TRUE">20060313</date><time Sync="TRUE">14251500</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\JGARCIA\temp\cartografia 9.2\VALLE_DE_CAUCA\CALI\Ciudad_Cali.mdb</srcused><date Sync="TRUE">20070320</date><time Sync="TRUE">19303300</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE"></srcused><procdate Sync="TRUE">20110321</procdate><proctime Sync="TRUE">14312500</proctime></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE"></srcused><procdate Sync="TRUE">20110321</procdate><proctime Sync="TRUE">22323100</proctime></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE"></srcused><procdate Sync="TRUE">20120606</procdate><proctime Sync="TRUE">12370600</proctime></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE"></srcused><procdate Sync="TRUE">20120606</procdate><proctime Sync="TRUE">12420200</proctime></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE"></srcused><procdate Sync="TRUE">20120606</procdate><proctime Sync="TRUE">12571000</proctime></procstep></lineage>
+	</dataqual>
+	<spdoinfo>
+		<direct Sync="TRUE">Vector</direct>
+		<ptvctinf>
+			<sdtsterm Name="map_utm_01_Dissolve1">
+				<sdtstype Sync="TRUE">G-polygon</sdtstype>
+				<ptvctcnt Sync="TRUE">0</ptvctcnt>
+			</sdtsterm>
+			<esriterm Name="map_utm_01_Dissolve1"><efeatyp Sync="TRUE">Simple</efeatyp><efeageom Sync="TRUE">Polygon</efeageom><esritopo Sync="TRUE">FALSE</esritopo><efeacnt Sync="TRUE">0</efeacnt><spindex Sync="TRUE">FALSE</spindex><linrefer Sync="TRUE">FALSE</linrefer></esriterm></ptvctinf>
+	</spdoinfo>
+	<spref>
+		<horizsys>
+			<geodetic>
+				<horizdn Sync="TRUE">D_WGS_1984</horizdn>
+				<ellips Sync="TRUE">WGS_1984</ellips>
+				<semiaxis Sync="TRUE">6378137.000000</semiaxis>
+				<denflat Sync="TRUE">298.257224</denflat>
+			</geodetic>
+			<cordsysn><geogcsn Sync="TRUE">GCS_WGS_1984</geogcsn><projcsn Sync="TRUE">WGS_1984_UTM_Zone_18N</projcsn></cordsysn><planar><gridsys><gridsysn Sync="TRUE">Universal Transverse Mercator</gridsysn><utm><utmzone Sync="TRUE">18</utmzone><transmer><sfctrmer Sync="TRUE">0.999600</sfctrmer><longcm Sync="TRUE">-75.000000</longcm><latprjo Sync="TRUE">0.000000</latprjo><feast Sync="TRUE">500000.000000</feast><fnorth Sync="TRUE">0.000000</fnorth></transmer></utm></gridsys><planci><plance Sync="TRUE">coordinate pair</plance><plandu Sync="TRUE">meters</plandu><coordrep><absres Sync="TRUE">0.000000</absres><ordres Sync="TRUE">0.000000</ordres></coordrep></planci></planar></horizsys>
+		<vertdef>
+			<altsys>
+				<altres Sync="TRUE">0.000010</altres>
+				<altenc Sync="TRUE">Explicit elevation coordinate included with horizontal coordinates</altenc>
+			</altsys>
+		</vertdef>
+	</spref>
+	<eainfo>
+		<detailed Name="map_utm_01_Dissolve1">
+			<enttyp>
+				<enttypl Sync="TRUE">map_utm_01_Dissolve1</enttypl>
+				<enttypt Sync="TRUE">Feature Class</enttypt><enttypc Sync="TRUE">0</enttypc></enttyp>
+			<attr><attrlabl Sync="TRUE">FID</attrlabl><attalias Sync="TRUE">FID</attalias><attrtype Sync="TRUE">OID</attrtype><attwidth Sync="TRUE">4</attwidth><atprecis Sync="TRUE">0</atprecis><attscale Sync="TRUE">0</attscale><attrdef Sync="TRUE">Internal feature number.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Sequential unique whole numbers that are automatically generated.</udom></attrdomv></attr><attr>
+				<attrlabl Sync="TRUE">Shape</attrlabl>
+				<attrdef>Geometría del elemento.</attrdef>
+				<attrdefs Sync="TRUE">ESRI</attrdefs>
+				<attrdomv>
+					<udom Sync="TRUE">Coordinates defining the features.</udom>
+				</attrdomv>
+				<attalias Sync="TRUE">Shape</attalias><attrtype Sync="TRUE">Geometry</attrtype><attwidth Sync="TRUE">0</attwidth><atprecis Sync="TRUE">0</atprecis><attscale Sync="TRUE">0</attscale></attr>
+			<attr><attrlabl Sync="TRUE">MUNICIPIO</attrlabl><attalias Sync="TRUE">MUNICIPIO</attalias><attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">20</attwidth></attr></detailed>
+	</eainfo>
+	<distinfo>
+		<distrib>
+			<cntinfo>
+				<cntorgp>
+					<cntorg>PROCALCULO PROSIS S.A.</cntorg>
+					<cntper>Nora Elena Jiménez Gómez</cntper>
+				</cntorgp>
+				<cntaddr>
+					<addrtype>direccion de correo</addrtype>
+					<address>Calle 16 No. 41-210 of. 803</address>
+					<city>Medellin</city>
+					<state>Antioquia</state>
+					<country>Colombia</country>
+				</cntaddr>
+				<cntvoice>57 - 4 - 2666657</cntvoice>
+				<cntfax>57 - 4 - 2666411</cntfax>
+				<cntemail>njimenez@prosis.com</cntemail>
+			</cntinfo>
+		</distrib>
+		<distliab>Con la compra del producto se concede UNA unica licencia exclusiva de uso de este producto. Se proohibe su distribución en medio magnetica y/o digital sin el previo concentimiento de los venderores de la licencia de uso.</distliab>
+		<stdorder>
+			<digform>
+				<digtinfo>
+					<formname>SHP</formname>
+					<formvern>Standard</formvern>
+					<formspec>ArcView Shapefile</formspec>
+					<transize Sync="TRUE">0.000</transize><dssize Sync="TRUE">0.000</dssize></digtinfo>
+				<digtopt><offoptn><offmedia>CD-ROM</offmedia></offoptn></digtopt></digform>
+			<digform>
+				<digtinfo>
+					<formname>Geodatabase</formname>
+					<formvern>ArcGis 8.3</formvern>
+					<transize Sync="TRUE">0.000</transize><dssize Sync="TRUE">0.000</dssize></digtinfo>
+				<digtopt><offoptn><offmedia>CD-ROM</offmedia></offoptn></digtopt></digform>
+			<ordering>Pedido exclusivo a la Fabrica de Mapas. No hay informacion adicional disponible.</ordering>
+		</stdorder>
+		<custom>A traves de PROSIS S.A. se hacen las ordenes de producción/compra.</custom>
+		<resdesc Sync="TRUE">Downloadable Data</resdesc></distinfo>
+	<metainfo>
+		<metd Sync="TRUE">20110321</metd>
+		<metc>
+			<cntinfo>
+				<cntorgp>
+					<cntorg>Fabrica de Mapas</cntorg>
+					<cntper>Nora Jiménez</cntper>
+				</cntorgp>
+				<cntaddr>
+					<addrtype>direccion de correo</addrtype>
+					<address>Calle 16 41-210 of. 803</address>
+					<city>Medellin</city>
+					<state>Antioquia</state>
+					<country>Colombia</country>
+					<postal>REQUIRED: The ZIP or other postal code of the address.</postal></cntaddr>
+				<cntvoice>57 4 2666657</cntvoice>
+				<cntfax>57 4 2666411</cntfax>
+				<cntemail>njimenez@prosis.com</cntemail>
+			</cntinfo>
+		</metc>
+		<metstdn Sync="TRUE">FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+		<metstdv Sync="TRUE">FGDC-STD-001-1998</metstdv>
+		<mettc Sync="TRUE">local time</mettc>
+		<langmeta Sync="TRUE">es</langmeta><metextns><onlink Sync="TRUE">http://www.esri.com/metadata/esriprof80.html</onlink><metprof Sync="TRUE">ESRI Metadata Profile</metprof></metextns></metainfo>
+	<Esri><CreaDate>20120606</CreaDate><CreaTime>12571000</CreaTime><SyncOnce>FALSE</SyncOnce><SyncDate>20110321</SyncDate><SyncTime>19150000</SyncTime><ModDate>20110321</ModDate><ModTime>19150000</ModTime><DataProperties><lineage><Process Name="Project_4" ToolSource="C:\Archivos de programa\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\Project" Date="20050118" Time="104502">Project C:\FABRICA_DE_MAPAS\Cali\Ciudad_Cali1.mdb\Cali_comunas C:\FABRICA_DE_MAPAS\Cali\Ciudad_Cali.mdb\Comunas GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]] Bogota_To_WGS_1984_2</Process><Process Name="Project_1" ToolSource="C:\Archivos de programa\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\Project" Date="20060310" Time="164219">Project D:\Mapas_9.1\CALI\Ciudad_Cali.mdb\Comunas D:\FABRICA_DE_MAPAS\Comunas_cali\comunas.shp PROJCS['Colombia_Bogota_Zone',GEOGCS['GCS_Bogota',DATUM['D_Bogota',SPHEROID['International_1924',6378388.0,297.0]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]],PROJECTION['Transverse_Mercator'],PARAMETER['False_Easting',1000000.0],PARAMETER['False_Northing',1000000.0],PARAMETER['Central_Meridian',-74.08091666666667],PARAMETER['Scale_Factor',1.0],PARAMETER['Latitude_Of_Origin',4.599047222222222],UNIT['Meter',1.0]] Bogota_To_WGS_1984_2</Process><Process Name="Project_3" ToolSource="C:\Archivos de programa\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\Project" Date="20060313" Time="142515">Project D:\FABRICA_DE_MAPAS\Comunas_cali\comunas_PLA.shp D:\FABRICA_DE_MAPAS\Comunas_cali\Comunas.shp GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]] Bogota_To_WGS_1984_2</Process><Process ToolSource="C:\Archivos de programa\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CopyFeatures" Date="20060313" Time="143305">CopyFeatures D:\FABRICA_DE_MAPAS\Comunas_cali\Comunas.shp D:\Mapas_9.1\CALI\Ciudad_Cali.mdb\Comunas # 0 0 0</Process><Process ToolSource="C:\Archivos de programa\ArcGIS\ArcToolbox\Toolboxes\Conversion Tools.tbx\FeatureClassToFeatureClass" Date="20100423" Time="085321">FeatureClassToFeatureClass G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas G:\cali_geograficas comunas.shp # "OBJECTID 'OBJECTID' true true false 4 Long 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,OBJECTID,-1,-1;Comuna 'Comuna' true true false 2 Text 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,Comuna,-1,-1;Shape_Leng 'Shape_Leng' true true false 8 Double 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,Shape_Leng,-1,-1;VERSION 'VERSION' true true false 5 Text 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,VERSION,-1,-1;MUNICIPIO 'MUNICIPIO' true true false 20 Text 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,MUNICIPIO,-1,-1;Shape_Le_1 'Shape_Length' false true true 8 Double 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,Shape_Length,-1,-1;Shape_Area 'Shape_Area' false true true 8 Double 0 0 ,First,#,G:\TESIS\datos_ilegales\CiudadCali.mdb\Comunas,Shape_Area,-1,-1" # G:\cali_geograficas\comunas.shp</Process><Process ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\Dissolve" Date="20110321" Time="191501">Dissolve map_utm_01 C:\Users\johann\Desktop\map_utm\map_utm_01_Dissolve1.shp MUNICIPIO # MULTI_PART DISSOLVE_LINES</Process></lineage></DataProperties><MetaID>{4CAEECA3-6AAC-4A29-BE70-6AE08A872435}</MetaID></Esri><dataIdInfo><envirDesc Sync="TRUE">Microsoft Windows Vista Version 6.0 (Build 6000) ; ESRI ArcCatalog 9.3.0.1770</envirDesc><dataLang><languageCode Sync="TRUE" value="es"></languageCode></dataLang><idCitation><resTitle Sync="TRUE">map_utm_01_Dissolve1</resTitle><presForm><PresFormCd Sync="TRUE" value="005"></PresFormCd></presForm></idCitation><spatRpType><SpatRepTypCd Sync="TRUE" value="001"></SpatRepTypCd></spatRpType><dataExt><geoEle><GeoBndBox esriExtentType="native"><westBL Sync="TRUE">720571.154804</westBL><eastBL Sync="TRUE">735907.143544</eastBL><northBL Sync="TRUE">879866.667157</northBL><southBL Sync="TRUE">860508.18096</southBL><exTypeCode Sync="TRUE">1</exTypeCode></GeoBndBox></geoEle></dataExt><geoBox esriExtentType="decdegrees"><westBL Sync="TRUE">283.405153</westBL><eastBL Sync="TRUE">283.543474</eastBL><northBL Sync="TRUE">3.509632</northBL><southBL Sync="TRUE">3.334376</southBL><exTypeCode Sync="TRUE">1</exTypeCode></geoBox></dataIdInfo><mdLang><languageCode Sync="TRUE" value="es"></languageCode></mdLang><mdStanName Sync="TRUE">ISO 19115 Geographic Information - Metadata</mdStanName><mdStanVer Sync="TRUE">DIS_ESRI1.0</mdStanVer><mdChar><CharSetCd Sync="TRUE" value="004"></CharSetCd></mdChar><mdHrLv><ScopeCd Sync="TRUE" value="005"></ScopeCd></mdHrLv><mdHrLvName Sync="TRUE">dataset</mdHrLvName><distInfo><distributor><distorTran><onLineSrc><orDesc Sync="TRUE">002</orDesc><linkage Sync="TRUE">file://</linkage><protocol Sync="TRUE">Local Area Network</protocol></onLineSrc><transSize Sync="TRUE">0.000</transSize></distorTran><distorFormat><formatName Sync="TRUE">Shapefile</formatName></distorFormat></distributor></distInfo><refSysInfo><RefSystem><refSysID><identCode Sync="TRUE">WGS_1984_UTM_Zone_18N</identCode></refSysID></RefSystem></refSysInfo><spatRepInfo><VectSpatRep><topLvl><TopoLevCd Sync="TRUE" value="001"></TopoLevCd></topLvl><geometObjs Name="map_utm_01_Dissolve1"><geoObjTyp><GeoObjTypCd Sync="TRUE" value="001"></GeoObjTypCd></geoObjTyp><geoObjCnt Sync="TRUE">0</geoObjCnt></geometObjs></VectSpatRep></spatRepInfo><mdDateSt Sync="TRUE">20110321</mdDateSt></metadata>
