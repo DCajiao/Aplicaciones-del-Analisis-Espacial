@@ -1,269 +1,382 @@
-### Actividad - Patrones Puntuales
-### David Alejandro Cajiao Lazt
-##################################
 
+## SITUACIÓN 2: Homicidios por Accidentes en Cali
+#################################################
+
+# =========================================================
+# Librerías
+# =========================================================
 # install.packages(c("readxl","sf","sp","spatstat","spatstat.model","spdep","grDevices","grid","stars"))
-install.packages("dplyr")
+# install.packages("dplyr")
 
 library(readxl)
 library(sf)
 library(sp)
 library(spdep)
-library(spatstat)          # meta-paquete; trae spatstat.geom/core
+library(spatstat)
 library(spatstat.model)
 library(grDevices); library(grid)
 library(stars)
 library(readr)
-
-# ----- Rutas -----
-csv_url <- "https://raw.githubusercontent.com/DCajiao/Aplicaciones-del-Analisis-Espacial/refs/heads/main/casos/Situaci%C3%B3n_2/data/Accidentes_2009_2010.csv"
-map_dir    <- "C:/Users/david/Desktop/Proyecto 2/Aplicaciones-del-Analisis-Espacial/casos/Situación_2/data/Mapas"
+library(dplyr)
 
 # =========================================================
 # 1) CARGA DE DATOS
 # =========================================================
-raw <- read_csv(csv_url)
+csv_url <- "https://raw.githubusercontent.com/DCajiao/Aplicaciones-del-Analisis-Espacial/refs/heads/main/casos/Situación_2/data/output/Accidentes_2009_2010.csv"
+map_dir <- "C:/Users/david/Desktop/Proyecto 2/Aplicaciones-del-Analisis-Espacial/casos/Situación_2/data/Mapas"
 
-# Columnas de interés (según indicación)
+raw <- read_csv(csv_url, show_col_types = FALSE)
+
+# Columnas de interés + AÑO y TIPO_AUTOMOTOR explícitos
 df <- data.frame(
-  x    = as.numeric(raw[["coordenada X (metros)"]]),
-  y    = as.numeric(raw[["coordenada Y (metros)"]]),
-  sexo = as.factor(raw[["SEXO"]]),
-  tipo = as.factor(raw[["CONDICCION"]]),
-  edad_agrupada = as.factor(raw[["EDAD AGRUPADA"]])
+  x_m  = as.numeric(raw[["coordenada X (metros)"]]),
+  y_m  = as.numeric(raw[["coordenada Y (metros)"]]),
+  SEXO = as.factor(raw[["SEXO"]]),
+  EDAD_AGRUPADA = as.factor(raw[["EDAD AGRUPADA"]]),
+  TIPO_AUTOMOTOR = as.factor(raw[["TIPO_AUTOMOTOR"]]),
+  ANIO = as.integer(raw[["AÑO_DATA"]]),
+  BARRIO = raw[["BARRIO"]],
+  COM = raw[["COM"]]
 )
 
-# Filas válidas
-df <- subset(df, is.finite(x) & is.finite(y))
-df$id <- seq_len(nrow(df))   # para rastrear filas
+# Limpieza mínima: quitar filas sin coordenadas válidas ni año
+df <- df |>
+  filter(is.finite(x_m), is.finite(y_m), !is.na(ANIO))
 
 # =========================================================
-# 2) MAPAS Y VENTANA DE ESTUDIO 
+# 2) CAPAS GEOGRÁFICAS Y CRS (EPSG:3115)
 # =========================================================
-shps <- list.files(map_dir, pattern = "\\.shp$", full.names = TRUE)
-stopifnot(length(shps) > 0)
+# Lee el borde municipal y barrios (forzando EPSG:3115)
+borde <- st_read(file.path(map_dir, "BordeComunasMetros.shp"), quiet = TRUE) |>
+  st_make_valid() |>
+  st_transform(3115)
 
-cand_borde <- grep("bord|borde|limite|límite|boundary",
-                   basename(shps), ignore.case = TRUE, value = TRUE)
-borde_path <- if (length(cand_borde) > 0) file.path(map_dir, cand_borde[1]) else shps[1]
+barrios <- st_read(file.path(map_dir, "Barrios.shp"), quiet = TRUE) |>
+  st_make_valid() |>
+  st_transform(3115)
 
-borde_sf <- st_read(borde_path, quiet = TRUE) |> st_make_valid()
-stopifnot(!is.na(st_crs(borde_sf)))  # debe traer CRS definido (en tu caso EPSG:32618)
+# Puntos como sf en 3115
+pts_sf <- st_as_sf(df, coords = c("x_m","y_m"), crs = 3115)
 
-# Unificar geometría del borde a un solo polígono
-borde_sf <- st_union(borde_sf) |> st_as_sf()
-borde_crs <- st_crs(borde_sf)
-
-# =========================================================
-# 3) CRS DE LOS PUNTOS (detección entre 3114/3115/3116) y transformación al borde
-# =========================================================
-mk_pts_src <- function(epsg_src) {
-  st_as_sf(df, coords = c("x","y"), crs = epsg_src) |>
-    st_transform(borde_crs)
-}
-cands_epsg <- c(3114, 3115, 3116)  # Bogotá West / Central / East
-pts_list <- lapply(cands_epsg, mk_pts_src)
-
-inside_count <- sapply(pts_list, function(p) {
-  sum(st_within(p, st_geometry(borde_sf), sparse = FALSE))
-})
-names(inside_count) <- paste0("EPSG:", cands_epsg)
-print(inside_count)
-
-best_ix  <- which.max(inside_count)
-best_eps <- cands_epsg[best_ix]
-cat(">>> Mejor EPSG para los puntos:", best_eps, 
-    "| puntos dentro (previo a filtrado estricto):", inside_count[best_ix], "\n")
-stopifnot(inside_count[best_ix] > 0)
-
-pts_sf <- pts_list[[best_ix]]  # puntos ya en CRS del borde, con columnas sexo/tipo/id
+# Asegurar que los puntos están dentro del borde
+pts_sf <- pts_sf[st_within(pts_sf, st_union(borde), sparse = FALSE), ]
 
 # =========================================================
-# 4) FILTRADO AL INTERIOR + MANEJO DE DUPLICADOS
+# 3) CONVERTIR A OBJETOS SPATSTAT (owin + ppp)
 # =========================================================
-# (a) Tolerancia de borde (buffer pequeño para absorber redondeos de vértices)
-buffer_m <- 10  # puedes ajustar (0, 5, 10)
-borde_sf_pad <- st_buffer(borde_sf, buffer_m)
 
-# (b) Quedarnos solo con puntos dentro del borde "acolchado"
-pts_sf_in <- st_filter(pts_sf, borde_sf_pad, .pred = st_within)
+# --- Limpieza robusta del polígono ---
+borde_clean <- borde |>
+  st_zm(drop = TRUE, what = "ZM") |>                      # quita dimensiones extra
+  st_collection_extract("POLYGON") |>                     # asegura geometrías planas
+  st_make_valid() |>                                      # repara polígonos inválidos
+  st_transform(3115)                                      # fuerza CRS EPSG:3115
 
-cat("Puntos totales:", nrow(pts_sf), 
-    "| dentro (con buffer", buffer_m, "m):", nrow(pts_sf_in), "\n")
+# --- Unir a un solo polígono ---
+borde_union <- st_union(borde_clean)
 
-# (c) Duplicados: si hay colisiones exactamente en las mismas coords, jitter leve (0.5 m)
-xy_in <- st_coordinates(pts_sf_in)
-dup_mask <- duplicated(data.frame(x = xy_in[,1], y = xy_in[,2]))
-n_dup <- sum(dup_mask)
-cat("Puntos duplicados (coincidencia exacta):", n_dup, "\n")
-
-if (n_dup > 0) {
-  pts_sf_in <- st_jitter(pts_sf_in, amount = 0.5)  # jitter de 0.5 m
-}
+# --- Convertir a ventana owin ---
+borde_win <- spatstat.geom::as.owin(borde_union)
+plot(borde_win, main = "Ventana de estudio (Cali)")
 
 # =========================================================
-# 5) CONVERSIÓN A spatstat (as.owin desde sf) y construcción del ppp
+# 4) CONSTRUIR PATRÓN DE PUNTOS (PPP)
 # =========================================================
-win_owin <- as.owin(borde_sf)            # ventana con el borde real (sin buffer)
-xy_ok    <- st_coordinates(pts_sf_in)
 
-acc_ppp <- ppp(
-  x = xy_ok[,1],
-  y = xy_ok[,2],
-  window = win_owin,
-  marks  = data.frame(sexo = pts_sf_in$sexo, tipo = pts_sf_in$tipo)
+# Extraer coordenadas de los puntos (ya en 3115)
+coords <- st_coordinates(pts_sf)
+
+# DataFrame de marcas
+marks_df <- pts_sf |>
+  st_drop_geometry() |>
+  dplyr::select(SEXO, EDAD_AGRUPADA, TIPO_AUTOMOTOR, ANIO)
+
+# Crear objeto ppp
+X_all <- spatstat.geom::ppp(
+  x = coords[,1],
+  y = coords[,2],
+  window = borde_win,
+  marks = marks_df
 )
 
-print(acc_ppp)
-summary(marks(acc_ppp))
+borde_sp <- as(borde_union, "Spatial")
+
+
+# Verificar creación
+print(X_all)
+plot(X_all, main = "Eventos de homicidios viales (2009–2010)")
 
 # =========================================================
-# 6) EDA ESPACIAL GENERAL
+# 4)  FUNCIONES PARA  ESDA
 # =========================================================
 
-# 6.1) Mapa general
-par(mar = c(0,0,0,0))
-plot(win_owin, main = "", col = "grey90", border = 1)
-plot(acc_ppp, add = TRUE, cex = 0.5, pch = 19)
+pal_fun <- function(n) grDevices::hcl.colors(n, palette = "Dark2")
 
-# 6.2) Conteo por cuadrantes + prueba CSR
-par(mfrow = c(1,2), mar = c(2,2,1,1))
-q_cnt <- quadratcount(acc_ppp, nx = 4, ny = 4)
-plot(q_cnt, main = "Frecuencias por cuadrante")
-plot(acc_ppp, add = TRUE, pch = 3, cex = 0.4)
-qt_res <- quadrat.test(acc_ppp, nx = 4, ny = 4)
-plot(qt_res, main = "Residuos de Pearson")
-
-cat("\n--- Resultado quadrat.test ---\n")
-print(qt_res)
-
-# 6.3) Densidad kernel
-par(mfrow = c(1,1), mar = c(2,2,1,1))
-den <- density(acc_ppp, sigma = bw.diggle)
-image(den, main = "Densidad kernel (bw.diggle)")
-contour(den, add = TRUE)
-plot(win_owin, add = TRUE, border = 1)
-
-# 6.4) Función K
-k_acc <- Kest(acc_ppp)
-plot(k_acc, main = "Kest: Accidentes fatales (general)")
-
-#####
-# =========================================================
-# 1) Resumen descriptivo de variables
-# =========================================================
-
-# Conteo por sexo
-table_sexo <- table(marks(acc_ppp)$sexo)
-prop_sexo  <- prop.table(table_sexo)
-
-cat("\n--- Distribución por sexo ---\n")
-print(table_sexo)
-print(round(100*prop_sexo, 1))
-
-# Conteo por tipo de automotor
-table_tipo <- table(marks(acc_ppp)$tipo)
-prop_tipo  <- prop.table(table_tipo)
-
-cat("\n--- Distribución por tipo de automotor ---\n")
-print(table_tipo)
-print(round(100*prop_tipo, 1))
-
-# Tabla cruzada Sexo x Tipo
-cat("\n--- Tabla cruzada Sexo x Tipo ---\n")
-print(table(marks(acc_ppp)$sexo, marks(acc_ppp)$tipo))
-
-# =========================================================
-# 2) EDA por SEXO
-# =========================================================
-
-# Dividir por sexo
-ppp_by_sexo <- split(acc_ppp, f = marks(acc_ppp)$sexo)
-
-par(mfrow = c(1,2), mar = c(0,0,1,0))
-for (s in names(ppp_by_sexo)) {
-  plot(win_owin, main = paste("Accidentes - Sexo:", s), col = "grey90")
-  plot(ppp_by_sexo[[s]], add = TRUE, pch = 19, cex = 0.5)
+plot_points_by <- function(X, by, main, pch_pt=16, cex_pt=0.55) {
+  stopifnot(by %in% colnames(marks(X)))
+  v   <- marks(X)[[by]]; if (!is.factor(v)) v <- factor(v)
+  lev <- levels(v)
+  pal <- pal_fun(length(lev))
+  cols <- pal[as.integer(v)]
+  
+  if (missing(main)) main <- sprintf("Eventos por %s", by)
+  plot(borde_sp, main=main)
+  points(X$x, X$y, pch=pch_pt, cex=cex_pt, col=cols)   # <<-- COLORES
+  legend("topright", legend=lev, pch=16, pt.cex=0.9, col=pal, bty="n", title=by)
 }
 
-# Densidades por sexo
-par(mfrow = c(1,2), mar = c(2,2,1,1))
-for (s in names(ppp_by_sexo)) {
-  den_s <- density(ppp_by_sexo[[s]], sigma = bw.diggle)
-  image(den_s, main = paste("Densidad kernel - Sexo:", s))
-  contour(den_s, add = TRUE)
-  plot(win_owin, add = TRUE)
+plot_quadrants <- function(X, nx=6, ny=6, main="Conteo por cuadrantes") {
+  plot(borde_sp, main=main)
+  points(X$x, X$y, pch=".", cex=0.9, col="#00000080")
+  plot(quadratcount(X, nx=nx, ny=ny), add=TRUE, col="blue")
 }
 
-# =========================================================
-# 1) Función K por SEXO
-# =========================================================
+run_quadrat_test <- function(X, nx=6, ny=6) {
+  if (npoints(X) >= 10) print(quadrat.test(X, nx=nx, ny=ny))
+  else message(sprintf("quadrat.test omitido (n=%d < 10)", npoints(X)))
+}
 
-ppp_by_sexo <- split(acc_ppp, f = marks(acc_ppp)$sexo)
+plot_kernel <- function(X, main="Densidad Kernel", sigma=NULL) {
+  if (is.null(sigma)) sigma <- bw.diggle(X)
+  den <- density(X, sigma=sigma)
+  image(den, main=main)
+  plot(borde_sp, add=TRUE, border=1)
+  contour(den, add=TRUE, col=1)
+}
 
-par(mfrow = c(1,1), mar = c(4,4,2,1))
-plot(Kest(ppp_by_sexo$F), main = "Función K por sexo", col = "red")
-plot(Kest(ppp_by_sexo$M), add = TRUE, col = "blue")
-legend("topleft", legend = c("Femenino","Masculino"),
-       col = c("red","blue"), lty = 1)
+subset_year <- function(X, year) {
+  idx <- with(marks(X), ANIO == year)
+  X[idx]
+}
 
-# =========================================================
-# 2) Test / mapa de riesgo relativo por SEXO (M vs F)
-# =========================================================
 
-# Construir un ppp con UNA sola marca (sexo)
-ppp_sexo <- acc_ppp
-marks(ppp_sexo) <- factor(marks(acc_ppp)$sexo, levels = c("F","M"))
+dir.create("outputs", showWarnings = FALSE)
 
-# Bandwidth recomendado para relrisk
-sig_sexo <- bw.relrisk(ppp_sexo)
+esda_estructura_anual <- function(year, nx=6, ny=6) {
+  stopifnot(year %in% unique(marks(X_all)$ANIO))
+  Xy <- subset_year(X_all, year)
+  sig <- bw.diggle(Xy)
+  
+  message(sprintf("== ESDA estructural | Año %d | n=%d ==", year, npoints(Xy)))
+  
+  png(file.path("outputs", sprintf("puntos_SEXO_%d.png", year)), 1400, 1000, res=140)
+  plot_points_by(Xy, by="SEXO", main=sprintf("Eventos por SEXO | %d", year))
+  dev.off()
+  
+  png(file.path("outputs", sprintf("puntos_EDAD_%d.png", year)), 1400, 1000, res=140)
+  plot_points_by(Xy, by="EDAD_AGRUPADA", main=sprintf("Eventos por EDAD | %d", year))
+  dev.off()
+  
+  png(file.path("outputs", sprintf("puntos_TIPO_%d.png", year)), 1400, 1000, res=140)
+  plot_points_by(Xy, by="TIPO_AUTOMOTOR", main=sprintf("Eventos por TIPO_AUTOMOTOR | %d", year))
+  dev.off()
+  
+  png(file.path("outputs", sprintf("cuadrantes_%d.png", year)), 1400, 1000, res=140)
+  plot_quadrants(Xy, nx=nx, ny=ny, main=sprintf("Cuadrantes | %d", year))
+  dev.off()
+  run_quadrat_test(Xy, nx=nx, ny=ny)
+  
+  png(file.path("outputs", sprintf("kernel_%d.png", year)), 1400, 1000, res=140)
+  plot_kernel(Xy, main=sprintf("Densidad Kernel | %d", year), sigma=sig)
+  dev.off()
+  
+  invisible(Xy)
+}
 
-# Riesgo relativo espacial: Hombres vs Mujeres
-sex_rr <- relrisk(ppp_sexo, casecontrol = TRUE,
-                  case = "M", control = "F",
-                  sigma = sig_sexo)
+# Ejecución de funciones
+X_2009 <- esda_estructura_anual(2009, nx=6, ny=6)
+X_2010 <- esda_estructura_anual(2010, nx=6, ny=6)
 
-par(mfrow = c(1,1), mar = c(2,2,2,4))
-plot(sex_rr, main = "Riesgo relativo espacial (Hombres vs Mujeres)")
-plot(win_owin, add = TRUE)
 
-# =========================================================
-# 3) Función K por TIPO DE AUTOMOTOR (principales)
-# =========================================================
 
-tipos_top <- c("PEATON","COND. MOTO","CICLISTA")
-ppp_by_tipo <- split(acc_ppp, f = marks(acc_ppp)$tipo)
 
-par(mfrow = c(1,1), mar = c(4,4,2,1))
-cols <- c("darkgreen","purple","orange")
-i <- 1
-for (t in tipos_top) {
-  K_t <- Kest(ppp_by_tipo[[t]])
-  if (i == 1) {
-    plot(K_t, main = "Función K por tipo de automotor", col = cols[i])
-  } else {
-    plot(K_t, add = TRUE, col = cols[i])
+
+# ==========================================================
+# COMPARACIÓN DE MODELOS POR AÑO + MÉTRICAS DE ERROR
+# ==========================================================
+dir.create("outputs_modelo", showWarnings = FALSE)
+
+# ---------- Intensidad robusta (Poisson/Gibbs) ----------
+pal_magma <- colorRampPalette(c("#0d0887","#6a00a8","#b12a90",
+                                "#e16462","#fca636","#f0f921"))
+
+
+compute_intensity_im <- function(fit, Xy, dimyx = 256,
+                                 nsim = 100,         # más simulaciones = más liso
+                                 sigma_mult = 1.8,   # más suave que bw.diggle
+                                 seed = 123) {
+  # 1) Intento intensidad total
+  im1 <- try(predict(fit, type = "intensity", dimyx = dimyx), silent = TRUE)
+  if (!inherits(im1, "try-error") && any(is.finite(as.vector(im1$v)))) return(im1)
+  
+  # 2) Intento CIF (útil en Gibbs)
+  im2 <- try(predict(fit, type = "cif", dimyx = dimyx), silent = TRUE)
+  if (!inherits(im2, "try-error") && any(is.finite(as.vector(im2$v)))) return(im2)
+  
+  # 3) Fallback: simulación + promedio de densidades
+  set.seed(seed)
+  sims <- simulate(fit, nsim = nsim, progress = FALSE)
+  if (!is.list(sims)) sims <- list(sims)
+  
+  sig0 <- bw.diggle(Xy)
+  sig  <- as.numeric(sig0) * sigma_mult
+  ims  <- lapply(sims, function(si) density(si, sigma = sig, dimyx = dimyx, at = "pixels"))
+  num  <- Reduce(`+`, ims)
+  eval.im(num / length(ims))
+}
+
+# ---------- utilidades de métrica (robusto + simulación si hace falta) ----------
+metrics_from_model <- function(fit, Xy, nx = 6, ny = 6, dimyx = 256, nsim = 60, seed = 123) {
+  Q <- quadrats(Window(Xy), nx = nx, ny = ny)
+  obs <- as.integer(quadratcount(Xy, tess = Q))
+  
+  # Esperados vía intensidad; si falla, simula y promedia conteos
+  expct <- try({
+    lam <- predict(fit, type = "intensity", dimyx = dimyx)
+    Ti  <- tiles(Q)
+    sapply(Ti, function(Wi) integral.im(lam, Wi))
+  }, silent = TRUE)
+  
+  if (inherits(expct, "try-error") || any(!is.finite(expct))) {
+    set.seed(seed)
+    sims <- simulate(fit, nsim = nsim, progress = FALSE)
+    if (!is.list(sims)) sims <- list(sims)
+    sim_counts <- sapply(sims, function(si) as.integer(quadratcount(si, tess = Q)))
+    expct <- rowMeans(sim_counts, na.rm = TRUE)
   }
-  i <- i + 1
+  
+  keep <- is.finite(expct)
+  obs  <- obs[keep]
+  expc <- expct[keep]
+  
+  RMSE <- sqrt(mean((obs - expc)^2))
+  MAE  <- mean(abs(obs - expc))
+  MAPE <- mean(ifelse(obs > 0, abs(obs - expc) / obs, NA), na.rm = TRUE) * 100
+  
+  list(RMSE = RMSE, MAE = MAE, MAPE = MAPE, obs = obs, exp = expc)
 }
-legend("topleft", legend = tipos_top, col = cols, lty = 1)
 
-# =========================================================
-# 4) Riesgo relativo espacial por TIPO (PEATÓN vs OTROS)
-# =========================================================
+# ---------- mapa de intensidad (1 panel limpio) ----------
+plot_intensity_png <- function(fit, Xy, year, label, file,
+                               dimyx = 256, nsim = 100, sigma_mult = 1.8) {
+  png(file.path("outputs_modelo", file), width = 1600, height = 1200, res = 160)
+  par(mfrow = c(1,1), mar = c(4,4,3,7))
+  inten <- compute_intensity_im(fit, Xy, dimyx = dimyx, nsim = nsim, sigma_mult = sigma_mult)
+  inten_sqrt <- eval.im(sqrt(pmax(inten, 0)))
+  plot(inten_sqrt, col = pal_magma(64),
+       main = sprintf("Intensidad (modelo: %s) | %d", label, year),
+       ribargs = list(las = 1, cex.axis = 0.9))
+  plot(borde_win, add = TRUE, border = 1, lwd = 0.8)
+  dev.off()
+}
 
-# Construir un ppp con UNA sola marca binaria (PEATON / OTROS)
-ppp_tipo2 <- acc_ppp
-marks(ppp_tipo2) <- factor(ifelse(marks(acc_ppp)$tipo == "PEATON", "PEATON", "OTROS"),
-                           levels = c("OTROS","PEATON"))
+# ---------- mapa de residuos (1 panel limpio) ----------
+plot_residuals_png <- function(fit, year, file) {
+  png(file.path("outputs_modelo", file), width = 1600, height = 1200, res = 160)
+  par(mfrow = c(1,1), mar = c(4,4,3,7))
+  res_sm <- Smooth(residuals(fit, type = "pearson"))
+  pal_div <- colorRampPalette(c("#2c7bb6","#abd9e9","#ffffbf","#fdae61","#d7191c"))
+  plot(res_sm, col = pal_div(64),
+       main = sprintf("Residuos de Pearson (suavizados) | %d", year),
+       ribargs = list(las = 1, cex.axis = 0.9))
+  plot(borde_win, add = TRUE, border = 1, lwd = 0.8)
+  contour(res_sm, add = TRUE, drawlabels = FALSE)
+  dev.off()
+}
 
-sig_tipo <- bw.relrisk(ppp_tipo2)
+# ---------- función principal por año ----------
+comparar_modelos_anio <- function(year, nx = 6, ny = 6,
+                                  poly_deg = 2, r_strauss = 200,
+                                  incluir_covar = FALSE,
+                                  plot_all = FALSE) {
+  stopifnot(year %in% unique(marks(X_all)$ANIO))
+  Xy <- unmark(X_all[with(marks(X_all), ANIO == year)])
+  
+  message(sprintf("== Comparación de modelos | %d | n=%d ==", year, npoints(Xy)))
+  
+  modelos   <- list()
+  etiquetas <- list()
+  
+  # (1) CSR
+  modelos$csr <- ppm(Xy ~ 1); etiquetas$csr <- "CSR"
+  
+  # (2) Poisson no estacionario (tendencia)
+  f_trend <- if (poly_deg <= 1) ~ x + y else ~ x + y + I(x^2) + I(y^2) + I(x*y)
+  modelos$inhom <- ppm(Xy, trend = f_trend); etiquetas$inhom <- "Inhom(x,y)"
+  
+  # (3) Interacción (Strauss)
+  modelos$strauss <- ppm(Xy, trend = ~ 1, interaction = Strauss(r = r_strauss))
+  etiquetas$strauss <- sprintf("Strauss(r=%d)", r_strauss)
+  
+  # (4) Opcional: covariable (distancia a centroide)
+  if (incluir_covar) {
+    cxy <- as.numeric(st_coordinates(st_centroid(st_as_sf(borde_union))))
+    dist_im <- as.im(function(x,y) sqrt((x - cxy[1])^2 + (y - cxy[2])^2), W = borde_win)
+    modelos$covar <- ppm(Xy ~ dist_im + I(dist_im^2))
+    etiquetas$covar <- "Covar(dist_centro)"
+  }
+  
+  # --- Tabla AIC, pR2, BIC ---
+  ll_csr <- as.numeric(logLik(modelos$csr))  # (pseudo)logLik para referencia
+  aic_tab <- data.frame(
+    Modelo   = names(modelos),
+    Etiqueta = unlist(etiquetas),
+    AIC      = sapply(modelos, AIC),
+    logLik   = sapply(modelos, function(m) as.numeric(logLik(m)))
+  )
+  # pR2 de McFadden vs CSR (para Gibbs usa pseudo-LL, válido para comparación relativa)
+  aic_tab$pR2 <- 1 - (aic_tab$logLik / ll_csr)
+  aic_tab$pR2[aic_tab$Modelo == "csr"] <- 0
+  
+  # BIC = -2*logLik + k*log(n)  (k = #parámetros; n = #puntos)
+  get_k <- function(m) {
+    k <- attr(logLik(m), "df")
+    if (is.null(k)) k <- length(coef(m))
+    as.numeric(k)
+  }
+  n_pts <- npoints(Xy)
+  aic_tab$BIC <- (-2 * aic_tab$logLik) + sapply(modelos, get_k) * log(n_pts)
+  
+  aic_tab <- aic_tab[order(aic_tab$AIC), ]
+  print(aic_tab)
+  
+  # --- Métricas RECM/MAE/MAPE ---
+  mets <- lapply(modelos, function(m) metrics_from_model(m, Xy, nx = nx, ny = ny))
+  err_tab <- data.frame(
+    Modelo   = names(modelos),
+    Etiqueta = unlist(etiquetas),
+    RECM     = sapply(mets, `[[`, "RMSE"),
+    EAM      = sapply(mets, `[[`, "MAE"),
+    MAPE     = sapply(mets, `[[`, "MAPE")
+  )
+  rownames(err_tab) <- NULL
+  err_tab <- err_tab[match(aic_tab$Modelo, err_tab$Modelo), ]
+  print(err_tab)
+  
+  # --- Elegir mejor por AIC y graficar 2 figuras grandes ---
+  best_name  <- aic_tab$Modelo[1]
+  best_fit   <- modelos[[best_name]]
+  best_label <- aic_tab$Etiqueta[1]
+  
+  if (!plot_all) {
+    # Solo mejor modelo
+    plot_intensity_png(best_fit, Xy, year, best_label, sprintf("ppm_trend_%d.png", year))
+    plot_residuals_png(best_fit, year, sprintf("ppm_residuos_%d.png", year))
+  } else {
+    # Guardar TODOS los modelos
+    for (nm in names(modelos)) {
+      fit_i   <- modelos[[nm]]
+      label_i <- etiquetas[[nm]]
+      suf     <- gsub("[^A-Za-z0-9]+", "_", label_i)
+      plot_intensity_png(fit_i, Xy, year, label_i,
+                         sprintf("ppm_trend_%s_%d.png", suf, year))
+      plot_residuals_png(fit_i, year,
+                         sprintf("ppm_residuos_%s_%d.png", suf, year))
+    }
+  }
+}
 
-risk_peaton <- relrisk(ppp_tipo2, casecontrol = TRUE,
-                       case = "PEATON", control = "OTROS",
-                       sigma = sig_tipo)
-
-par(mar = c(2,2,2,4))
-plot(risk_peaton, main = "Riesgo relativo espacial: PEATÓN vs OTROS")
-plot(win_owin, add = TRUE)
-
+# -----------------------
+# Ejecutar para 2009 y 2010 (≥3 modelos: CSR / Inhom(x,y) / Strauss)
+res_2009 <- comparar_modelos_anio(2009, nx = 6, ny = 6, poly_deg = 2, r_strauss = 200, incluir_covar = TRUE)
+res_2010 <- comparar_modelos_anio(2010, nx = 6, ny = 6, poly_deg = 2, r_strauss = 200, incluir_covar = TRUE)
