@@ -1,5 +1,5 @@
 
-## SITUACIÓN 2: Homicidios por Accidentes en Cali
+## SITUACIÓN 2: Homicidios por Accidentes de tránsito en Cali
 #################################################
 
 # =========================================================
@@ -20,14 +20,15 @@ library(readr)
 library(dplyr)
 
 # =========================================================
-# 1) CARGA DE DATOS
+# 1) CARGA DE DATOS DESDE GITHUB
 # =========================================================
 csv_url <- "https://raw.githubusercontent.com/DCajiao/Aplicaciones-del-Analisis-Espacial/refs/heads/main/casos/Situación_2/data/output/Accidentes_2009_2010.csv"
 map_dir <- "C:/Users/david/Desktop/Proyecto 2/Aplicaciones-del-Analisis-Espacial/casos/Situación_2/data/Mapas"
 
 raw <- read_csv(csv_url, show_col_types = FALSE)
 
-# Columnas de interés + AÑO y TIPO_AUTOMOTOR explícitos
+# Columnas de interés + AÑO y TIPO_AUTOMOTOR explícitos 
+# (Estas columnas ya están en el CSV, fueropn procesadas desde el notebook de Python)
 df <- data.frame(
   x_m  = as.numeric(raw[["coordenada X (metros)"]]),
   y_m  = as.numeric(raw[["coordenada Y (metros)"]]),
@@ -40,6 +41,7 @@ df <- data.frame(
 )
 
 # Limpieza mínima: quitar filas sin coordenadas válidas ni año
+# Sólo para estar seguros, de igual manera el csv ya viene limpio
 df <- df |>
   filter(is.finite(x_m), is.finite(y_m), !is.na(ANIO))
 
@@ -47,6 +49,7 @@ df <- df |>
 # 2) CAPAS GEOGRÁFICAS Y CRS (EPSG:3115)
 # =========================================================
 # Lee el borde municipal y barrios (forzando EPSG:3115)
+# Lectura del borde municipal y barrios (FORZANDO EPSG:3115 para compatibilidad)
 borde <- st_read(file.path(map_dir, "BordeComunasMetros.shp"), quiet = TRUE) |>
   st_make_valid() |>
   st_transform(3115)
@@ -67,10 +70,10 @@ pts_sf <- pts_sf[st_within(pts_sf, st_union(borde), sparse = FALSE), ]
 
 # --- Limpieza robusta del polígono ---
 borde_clean <- borde |>
-  st_zm(drop = TRUE, what = "ZM") |>                      # quita dimensiones extra
-  st_collection_extract("POLYGON") |>                     # asegura geometrías planas
-  st_make_valid() |>                                      # repara polígonos inválidos
-  st_transform(3115)                                      # fuerza CRS EPSG:3115
+  st_zm(drop = TRUE, what = "ZM") |>   # quita dimensiones extra
+  st_collection_extract("POLYGON") |>  # asegura geometrías planas
+  st_make_valid() |>                   # repara polígonos inválidos
+  st_transform(3115)                   # fuerza CRS EPSG:3115
 
 # --- Unir a un solo polígono ---
 borde_union <- st_union(borde_clean)
@@ -83,7 +86,7 @@ plot(borde_win, main = "Ventana de estudio (Cali)")
 # 4) CONSTRUIR PATRÓN DE PUNTOS (PPP)
 # =========================================================
 
-# Extraer coordenadas de los puntos (ya en 3115)
+# Extraer coordenadas de los puntos
 coords <- st_coordinates(pts_sf)
 
 # DataFrame de marcas
@@ -102,9 +105,9 @@ X_all <- spatstat.geom::ppp(
 borde_sp <- as(borde_union, "Spatial")
 
 
-# Verificar creación
-print(X_all)
-plot(X_all, main = "Eventos de homicidios viales (2009–2010)")
+# Print y plot para probar
+# print(X_all)
+# plot(X_all, main = "Eventos de homicidios viales (2009–2010)")
 
 # =========================================================
 # 4)  FUNCIONES PARA  ESDA
@@ -149,7 +152,7 @@ subset_year <- function(X, year) {
   X[idx]
 }
 
-
+# Esta carpeta espara outputs del ESDA
 dir.create("outputs", showWarnings = FALSE)
 
 esda_estructura_anual <- function(year, nx=6, ny=6) {
@@ -183,17 +186,15 @@ esda_estructura_anual <- function(year, nx=6, ny=6) {
   invisible(Xy)
 }
 
-# Ejecución de funciones
+# Uso de las funciones para el esda estructural por año
 X_2009 <- esda_estructura_anual(2009, nx=6, ny=6)
 X_2010 <- esda_estructura_anual(2010, nx=6, ny=6)
 
 
-
-
-
 # ==========================================================
-# COMPARACIÓN DE MODELOS POR AÑO + MÉTRICAS DE ERROR
+# 5) COMPARACIÓN DE MODELOS POR AÑO + MÉTRICAS DE ERROR
 # ==========================================================
+# Esta carpeta espara outputs del modelado
 dir.create("outputs_modelo", showWarnings = FALSE)
 
 # ---------- Intensidad robusta (Poisson/Gibbs) ----------
@@ -231,6 +232,7 @@ metrics_from_model <- function(fit, Xy, nx = 6, ny = 6, dimyx = 256, nsim = 60, 
   obs <- as.integer(quadratcount(Xy, tess = Q))
   
   # Esperados vía intensidad; si falla, simula y promedia conteos
+  # (Esto lo planteamos de esa manera para que funcione con Gibbs)
   expct <- try({
     lam <- predict(fit, type = "intensity", dimyx = dimyx)
     Ti  <- tiles(Q)
@@ -377,6 +379,8 @@ comparar_modelos_anio <- function(year, nx = 6, ny = 6,
 }
 
 # -----------------------
-# Ejecutar para 2009 y 2010 (≥3 modelos: CSR / Inhom(x,y) / Strauss)
+# Ejecutar la funcion de comparacion de modelos por año para 2009 y 2010 y guardar resultados 
+# en la carpeta outputs_modelo
+# -----------------------
 res_2009 <- comparar_modelos_anio(2009, nx = 6, ny = 6, poly_deg = 2, r_strauss = 200, incluir_covar = TRUE)
 res_2010 <- comparar_modelos_anio(2010, nx = 6, ny = 6, poly_deg = 2, r_strauss = 200, incluir_covar = TRUE)
